@@ -1,0 +1,28 @@
+name: Release Published
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+
+      - run: yarn
+
+      - uses: scaffoldly/bump-version-action@v1
+        with:
+          action: postrelease
+          version-file: package.json
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: yarn deploy
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
