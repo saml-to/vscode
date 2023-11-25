@@ -2,7 +2,7 @@
   "name": "vscode-extension",
   "displayName": "SAML.to VSCode Extension",
   "description": "VSCode Extension for SAML.to",
-  "version": "0.0.1",
+  "version": "0.0.2-0",
   "engines": {
     "vscode": "^1.84.0"
   },
