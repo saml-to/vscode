@@ -1,9 +1,17 @@
 {
-  "name": "vscode-extension",
+  "name": "saml-to-vscode",
+  "version": "0.1.0",
+  "displayName": "VSCode Extension for SAML.to",
   "publisher": "saml-to",
-  "displayName": "SAML.to VSCode Extension",
+  "author": "SAML.to",
+  "license": "Apache-2.0",
+  "private": false,
   "description": "VSCode Extension for SAML.to",
-  "version": "0.0.3-0",
+  "repository": "git@github.com:saml-to/vscode-extension.git",
+  "bugs": {
+    "url": "https://github.com/saml-to/vscode-extension/issues"
+  },
+  "homepage": "https://github.com/saml-to/vscode-extension#readme",
   "engines": {
     "vscode": "^1.84.0"
   },

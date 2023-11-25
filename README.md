@@ -20,9 +20,9 @@ TODO
 
 ## Release Notes
 
-### 0.0
+### 0.1
 
-TODO
+Initial Release
 
 ## License
 
