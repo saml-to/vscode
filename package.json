@@ -38,9 +38,11 @@
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "deploy": "vsce publish --yarn"
+    "deploy": "vsce publish --yarn",
+    "openapi": "openapi-generator -g axios -i .scaffoldly/$NODE_ENV -o api -r github-sls-rest-api"
   },
   "devDependencies": {
+    "@scaffoldly/openapi-generator": "^2.0.0",
     "@types/mocha": "^10.0.3",
     "@types/node": "18.x",
     "@types/vscode": "^1.84.0",
