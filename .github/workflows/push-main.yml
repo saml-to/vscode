@@ -1,0 +1,37 @@
+name: Push to Main
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  prerelease:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+
+      - run: yarn
+
+      - run: xvfb-run -a yarn test
+        if: runner.os == 'Linux'
+
+      - run: yarn test
+        if: runner.os != 'Linux'
+
+      - if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: scaffoldly/bump-version-action@v1
+        with:
+          action: prerelease
+          version-file: package.json
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
