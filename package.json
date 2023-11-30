@@ -18,15 +18,80 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-extension.helloWorld",
-        "title": "SAML.to: Hello World"
+        "command": "saml-to-vscode.assume-aws-role",
+        "title": "SAML.to: Assume AWS Role"
+      },
+      {
+        "command": "saml-to-vscode.stop-refresh",
+        "title": "SAML.to: Stop Refreshing Credentials"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "SAML.to",
+      "properties": {
+        "saml-to.github.token": {
+          "type": "string",
+          "default": null,
+          "markdownDescription": "Provide a GitHub Token instead of using VSCode Authentication. This token requires the `user:email` scope. (Ignores the `GITHUB_TOKEN` environment variable and/or VSCode Authentication if set.)"
+        },
+        "saml-to.assumeAws.assumeRoleAtStartup": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Automatically attempt to assume a role at startup. If `assumeAws.role` or `assumeAws.rememberRole` is set, the role prompt will be skipped.`"
+        },
+        "saml-to.assumeAws.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh the credentials before they expire."
+        },
+        "saml-to.assumeAws.region": {
+          "type": "string",
+          "default": "us-east-1",
+          "markdownDescription": "The AWS Default Region to set after assuming a role. (Overridden by the `AWS_DEFAULT_REGION` environment variable.)"
+        },
+        "saml-to.assumeAws.role": {
+          "type": "string",
+          "default": null,
+          "markdownDescription": "Skip role selection input and assume this role. (Overridden by the `AWS_ROLE_ARN` environment variable.)"
+        },
+        "saml-to.assumeAws.rememberRole": {
+          "type": "string",
+          "default": "None",
+          "enum": [
+            "Workspace",
+            "Global",
+            "None"
+          ],
+          "markdownDescription": "Skip role selection input and assume the last role used. This is ignored when the `assumeAws.role` setting is set."
+        },
+        "saml-to.assumeAws.profile.name": {
+          "type": "string",
+          "default": "Default Profile",
+          "enum": [
+            "Default Profile",
+            "Role ARN",
+            "Role Name",
+            "Account ID",
+            "None"
+          ],
+          "enumDescriptions": [
+            "Use the default AWS profile.",
+            "Use the Role ARN as the profile name.",
+            "Use the Role Name as the profile name.",
+            "Use the Account ID as the profile name.",
+            "Do not save the credentials to a profile."
+          ],
+          "markdownDescription": "Save AWS Credentials to a named profile in `~/.aws/config`. (Overridden by the `AWS_PROFILE` environment variable.)"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
@@ -43,9 +108,13 @@
   },
   "devDependencies": {
     "@scaffoldly/openapi-generator": "^2.0.0",
+    "@types/humanize-duration": "^3.27.3",
     "@types/mocha": "^10.0.3",
     "@types/node": "18.x",
+    "@types/qrcode-svg": "^1.1.4",
+    "@types/qrcode-terminal": "^0.12.2",
     "@types/vscode": "^1.84.0",
+    "@types/which": "^3.0.3",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
     "@vscode/test-electron": "^2.3.6",
@@ -57,5 +126,12 @@
     "typescript": "^5.2.2",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sts": "^3.458.0",
+    "@octokit/rest": "^20.0.2",
+    "humanize-duration": "^3.31.0",
+    "qrcode-svg": "^1.1.0",
+    "which": "^4.0.0"
   }
 }
