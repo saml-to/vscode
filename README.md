@@ -10,6 +10,8 @@
 
 This is the VSCode Extension for [SAML.to](https://saml.to). It allows for AWS role assumption within VSCode.
 
+![Assume an AWS Role in VSCode](resources/marketplace/assume-role.gif)
+
 ## Features
 
 - Assume AWS Roles in VSCode

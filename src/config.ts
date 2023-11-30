@@ -113,6 +113,16 @@ class AssumeAwsConfiguration {
   }
 
   set lastRoleArn(roleArn: string | null) {
+    if (roleArn === null) {
+      this.context.workspaceState
+        .update("assumeAws.lastRoleArn", null)
+        .then(() => {});
+      this.context.globalState
+        .update("assumeAws.lastRoleArn", null)
+        .then(() => {});
+      return;
+    }
+
     let memento: vscode.Memento | undefined = undefined;
 
     if (this.rememberRole === "Global") {

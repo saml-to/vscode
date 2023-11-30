@@ -134,6 +134,7 @@
   "dependencies": {
     "@aws-sdk/client-sts": "^3.458.0",
     "@octokit/rest": "^20.0.2",
+    "axios": "^1.6.2",
     "humanize-duration": "^3.31.0",
     "qrcode-svg": "^1.1.0",
     "which": "^4.0.0"

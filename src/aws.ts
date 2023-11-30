@@ -5,6 +5,7 @@ import { AssumeRoleWithSAMLCommand, STSClient } from "@aws-sdk/client-sts";
 import { exec } from "./exec";
 import humanizeDuration from "humanize-duration";
 import { Configuration, ProfileName } from "./config";
+import { isAxiosError } from "axios";
 
 export const assumeAwsRole = (
   configuration: Configuration,
@@ -41,7 +42,7 @@ export const assumeAwsRole = (
             return {
               label: r.role.split("/").pop() || r.role,
               description: r.org,
-              detail: r.role,
+              detail: `${r.role}`,
               roleArn: r.role,
             };
           }),
@@ -157,12 +158,22 @@ export const assumeAwsRole = (
         }
       }
     } catch (e) {
+      // Clear State
+      configuration.assumeAws.lastRoleArn = null;
+
       if (!(e instanceof Error)) {
         throw e;
       }
-      vscode.window.showWarningMessage(
-        `[SAML.to] Unable to assume AWS role: ${e.message}`
-      );
+
+      if (isAxiosError(e)) {
+        vscode.window.showWarningMessage(
+          `[SAML.to] Unable to assume AWS role: ${e.response?.data?.message}`
+        );
+      } else {
+        vscode.window.showWarningMessage(
+          `[SAML.to] Unable to assume AWS role: ${e.message}`
+        );
+      }
     }
   };
 };
