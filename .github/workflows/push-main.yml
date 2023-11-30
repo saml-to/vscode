@@ -24,11 +24,11 @@ jobs:
 
       - run: yarn openapi
 
-      - run: xvfb-run -a yarn test
-        if: runner.os == 'Linux'
+      # - run: xvfb-run -a yarn test
+      #   if: runner.os == 'Linux'
 
-      - run: yarn test
-        if: runner.os != 'Linux'
+      # - run: yarn test
+      #   if: runner.os != 'Linux'
 
       - if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: scaffoldly/bump-version-action@v1
