@@ -8,11 +8,14 @@
   "private": false,
   "description": "VSCode Extension for SAML.to",
   "icon": "resources/marketplace/saml-to-logo@256w.png",
-  "repository": "git@github.com:saml-to/vscode-extension.git",
-  "bugs": {
-    "url": "https://github.com/saml-to/vscode-extension/issues"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/saml-to/vscode.git"
   },
-  "homepage": "https://github.com/saml-to/vscode-extension#readme",
+  "bugs": {
+    "url": "https://github.com/saml-to/vscode/issues"
+  },
+  "homepage": "https://github.com/saml-to/vscode#readme",
   "engines": {
     "vscode": "^1.84.0"
   },
