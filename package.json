@@ -7,6 +7,7 @@
   "license": "Apache-2.0",
   "private": false,
   "description": "VSCode Extension for SAML.to",
+  "icon": "resources/marketplace/saml-to-logo@256w.png",
   "repository": "git@github.com:saml-to/vscode-extension.git",
   "bugs": {
     "url": "https://github.com/saml-to/vscode-extension/issues"
@@ -44,7 +45,7 @@
         "saml-to.assumeAws.assumeRoleAtStartup": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Automatically attempt to assume a role at startup. If `assumeAws.role` or `assumeAws.rememberRole` is set, the role prompt will be skipped.`"
+          "markdownDescription": "Automatically attempt to assume a role at startup. If `assumeAws.role` or `assumeAws.rememberRole` is set, the role prompt will be skipped."
         },
         "saml-to.assumeAws.autoRefresh": {
           "type": "boolean",
