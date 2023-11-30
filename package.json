@@ -1,6 +1,6 @@
 {
   "name": "saml-to-vscode",
-  "version": "0.1.2",
+  "version": "0.1.3-0",
   "displayName": "VSCode Extension for SAML.to",
   "publisher": "saml-to",
   "author": "SAML.to",
