@@ -5,12 +5,12 @@ import {
 import { ApiFactory } from "./api";
 import * as vscode from "vscode";
 import QRCode from "qrcode-svg";
-import { Configuration } from "./config";
+import { AwsRoleSelection, Configuration } from "./config";
 
 export type RetryFunctionWithCode = (
   configuration: Configuration,
   apiFactory: ApiFactory,
-  roleArn: string,
+  roleSelection: AwsRoleSelection,
   code: string
 ) => () => Promise<void>;
 
@@ -18,7 +18,7 @@ export class TotpHelper {
   constructor(
     private configuration: Configuration,
     private apiFactory: ApiFactory,
-    private roleArn: string
+    private roleSelection: AwsRoleSelection
   ) {}
 
   async promptChallenge(
@@ -152,7 +152,12 @@ export class TotpHelper {
       panel.dispose();
     }
 
-    return retryFn(this.configuration, this.apiFactory, this.roleArn, code)();
+    return retryFn(
+      this.configuration,
+      this.apiFactory,
+      this.roleSelection,
+      code
+    )();
   }
 }
 

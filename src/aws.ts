@@ -4,13 +4,13 @@ import { TotpHelper } from "./totp";
 import { AssumeRoleWithSAMLCommand, STSClient } from "@aws-sdk/client-sts";
 import { exec } from "./exec";
 import humanizeDuration from "humanize-duration";
-import { Configuration, ProfileName } from "./config";
+import { AwsRoleSelection, Configuration, ProfileName } from "./config";
 import { isAxiosError } from "axios";
 
 export const assumeAwsRole = (
   configuration: Configuration,
   apiFactory: ApiFactory,
-  roleArn?: string | null,
+  roleSelection?: AwsRoleSelection | null,
   twoFactorCode?: string,
   isRefresh?: boolean
 ): (() => Promise<void>) => {
@@ -23,14 +23,17 @@ export const assumeAwsRole = (
     try {
       const idpApi = await apiFactory.idpApi(twoFactorCode);
 
-      if (roleArn === undefined && configuration.assumeAws.lastRoleArn) {
-        roleArn = configuration.assumeAws.lastRoleArn;
+      if (
+        roleSelection === undefined &&
+        configuration.assumeAws.lastRoleSelection
+      ) {
+        roleSelection = configuration.assumeAws.lastRoleSelection;
       }
 
       // Clear State
-      configuration.assumeAws.lastRoleArn = null;
+      configuration.assumeAws.lastRoleSelection = null;
 
-      if (!roleArn) {
+      if (!roleSelection) {
         const { data: roles } = await idpApi.listRoles();
 
         if (!roles.results || !roles.results.length) {
@@ -40,10 +43,11 @@ export const assumeAwsRole = (
         const selection = await vscode.window.showQuickPick(
           roles.results.map((r) => {
             return {
-              label: r.role.split("/").pop() || r.role,
-              description: r.org,
-              detail: `${r.role}`,
+              label: r.role,
+              description: `${r.org} (${r.provider})`,
               roleArn: r.role,
+              org: r.org,
+              provder: r.provider,
             };
           }),
           {
@@ -60,16 +64,28 @@ export const assumeAwsRole = (
         return assumeAwsRole(
           configuration,
           apiFactory,
-          selection.roleArn,
+          {
+            roleArn: selection.roleArn,
+            org: selection.org,
+            provider: selection.provder,
+          },
           twoFactorCode
         )();
       }
 
-      const { data: assumeRoleResponse } = await idpApi.assumeRole(roleArn);
+      const { data: assumeRoleResponse } = await idpApi.assumeRole(
+        roleSelection.roleArn,
+        roleSelection.org,
+        roleSelection.provider
+      );
 
       const { challenge } = assumeRoleResponse;
       if (challenge) {
-        const totpHelper = new TotpHelper(configuration, apiFactory, roleArn);
+        const totpHelper = new TotpHelper(
+          configuration,
+          apiFactory,
+          roleSelection
+        );
         // TODO TOTP Enrollment
         return await totpHelper.promptChallenge(challenge, assumeAwsRole);
       }
@@ -110,12 +126,12 @@ export const assumeAwsRole = (
       }
 
       // Save State
-      configuration.assumeAws.lastRoleArn = roleArn;
+      configuration.assumeAws.lastRoleSelection = roleSelection;
 
       if (configuration.assumeAws.profile.name !== "None") {
         const profileName = generateProfileName(
           configuration.assumeAws.profile.name,
-          roleArn
+          roleSelection
         );
         const base = ["aws", "configure"];
         base.push("--profile", profileName);
@@ -142,7 +158,7 @@ export const assumeAwsRole = (
           await assumeAwsRole(
             configuration,
             apiFactory,
-            roleArn,
+            roleSelection,
             undefined,
             true
           )();
@@ -159,7 +175,7 @@ export const assumeAwsRole = (
       }
     } catch (e) {
       // Clear State
-      configuration.assumeAws.lastRoleArn = null;
+      configuration.assumeAws.lastRoleSelection = null;
 
       if (!(e instanceof Error)) {
         throw e;
@@ -180,22 +196,22 @@ export const assumeAwsRole = (
 
 export const generateProfileName = (
   profileName: ProfileName,
-  roleArn: string
+  roleSelection: AwsRoleSelection
 ): string => {
   if (profileName === "Default Profile") {
     return "default";
   }
 
   if (profileName === "Role Name") {
-    return roleArn.split("/").pop() || roleArn;
+    return roleSelection.roleArn.split("/").pop() || roleSelection.roleArn;
   }
 
   if (profileName === "Role ARN") {
-    return roleArn;
+    return roleSelection.roleArn;
   }
 
   if (profileName === "Account ID") {
-    const parts = roleArn.split(":");
+    const parts = roleSelection.roleArn.split(":");
     return parts[4];
   }
 

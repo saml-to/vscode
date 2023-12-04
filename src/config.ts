@@ -29,6 +29,12 @@ export type AssumeAwsProfileOptions = {
   name: ProfileName;
 };
 
+export type AwsRoleSelection = {
+  roleArn: string;
+  provider?: string;
+  org?: string;
+};
+
 class GitHubConfiguration {
   constructor(private configuration: vscode.WorkspaceConfiguration) {}
 
@@ -94,31 +100,33 @@ class AssumeAwsConfiguration {
     return this.#profile;
   }
 
-  get lastRoleArn(): string | null {
+  get lastRoleSelection(): AwsRoleSelection | null {
     if (this.rememberRole === "Global") {
-      return this.context.globalState.get<string | null>(
-        "assumeAws.lastRoleArn",
+      let roleSelection = this.context.globalState.get<string | null>(
+        "assumeAws.lastRoleSelection",
         null
       );
+      return roleSelection ? JSON.parse(roleSelection) : null;
     }
 
     if (this.rememberRole === "Workspace") {
-      return this.context.workspaceState.get<string | null>(
-        "assumeAws.lastRoleArn",
+      let roleSelection = this.context.workspaceState.get<string | null>(
+        "assumeAws.lastRoleSelection",
         null
       );
+      return roleSelection ? JSON.parse(roleSelection) : null;
     }
 
     return null;
   }
 
-  set lastRoleArn(roleArn: string | null) {
-    if (roleArn === null) {
+  set lastRoleSelection(roleSelection: AwsRoleSelection | null) {
+    if (roleSelection === null) {
       this.context.workspaceState
-        .update("assumeAws.lastRoleArn", null)
+        .update("assumeAws.lastRoleSelection", null)
         .then(() => {});
       this.context.globalState
-        .update("assumeAws.lastRoleArn", null)
+        .update("assumeAws.lastRoleSelection", null)
         .then(() => {});
       return;
     }
@@ -134,7 +142,9 @@ class AssumeAwsConfiguration {
     }
 
     if (memento) {
-      memento.update("assumeAws.lastRoleArn", roleArn).then(() => {});
+      memento
+        .update("assumeAws.lastRoleSelection", JSON.stringify(roleSelection))
+        .then(() => {});
     }
   }
 }
@@ -144,7 +154,7 @@ export class Configuration {
   #assumeAws: AssumeAwsConfiguration;
 
   constructor(private context: vscode.ExtensionContext) {
-    this.context.globalState.setKeysForSync(["assumeAws.lastRoleArn"]);
+    this.context.globalState.setKeysForSync(["assumeAws.lastRoleSelection"]);
     this.#github = new GitHubConfiguration(
       vscode.workspace.getConfiguration("saml-to.github")
     );

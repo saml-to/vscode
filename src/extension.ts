@@ -14,7 +14,11 @@ export async function activate(context: vscode.ExtensionContext) {
       assumeAwsRole(
         configuration,
         apiFactory,
-        configuration.assumeAws.role || undefined
+        configuration.assumeAws.role
+          ? {
+              roleArn: configuration.assumeAws.role,
+            }
+          : undefined
       )
     )
   );
