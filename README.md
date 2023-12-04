@@ -1,6 +1,6 @@
 # SAML.to VSCode Extension
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/saml-to/vscode?label=version) ![GitHub issues](https://img.shields.io/github/issues/saml-to/vscode) ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/saml-to/vscode/Push%20to%20Main)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/saml-to/vscode?label=version) ![GitHub issues](https://img.shields.io/github/issues/saml-to/vscode) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/saml-to/vscode/push-main.yml?branch=main)
 
 - Website: https://saml.to
 - Forums: https://github.com/saml-to/vscode/discussions
