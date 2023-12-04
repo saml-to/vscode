@@ -50,7 +50,7 @@ class AssumeAwsProfileConfiguration {
   constructor(private configuration: vscode.WorkspaceConfiguration) {}
 
   get name(): ProfileName {
-    return this.configuration.get<ProfileName>("name", "Default Profile");
+    return this.configuration.get<ProfileName>("name", "Role ARN");
   }
 }
 

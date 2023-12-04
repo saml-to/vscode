@@ -6,7 +6,7 @@
   "author": "SAML.to",
   "license": "Apache-2.0",
   "private": false,
-  "description": "VSCode Extension for SAML.to",
+  "description": "Assume AWS Roles in VSCode using SAML.to",
   "icon": "resources/marketplace/saml-to-logo@256w.png",
   "repository": {
     "type": "git",
@@ -77,7 +77,7 @@
         },
         "saml-to.assumeAws.profile.name": {
           "type": "string",
-          "default": "Default Profile",
+          "default": "Role ARN",
           "enum": [
             "Default Profile",
             "Role ARN",
@@ -86,7 +86,7 @@
             "None"
           ],
           "enumDescriptions": [
-            "Use the default AWS profile.",
+            "Use the \"default\" as the profile name.",
             "Use the Role ARN as the profile name.",
             "Use the Role Name as the profile name.",
             "Use the Account ID as the profile name.",
