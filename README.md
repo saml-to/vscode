@@ -16,7 +16,7 @@ This is the VSCode Extension for [SAML.to](https://saml.to). It allows for AWS r
 
 - Assume AWS Roles in VSCode
 - Automatic Refreshes
-- Automatically update `~/.aws/config`and `~/.aws/credentials` with: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN`
+- Automatically update `~/.aws/config` and `~/.aws/credentials` with: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN`
 - Works seamlessly with the [AWS Toolkit](https://marketplace.visualstudio.com/items?itemName=AmazonWebServices.aws-toolkit-vscode)
 
 ## Installation
