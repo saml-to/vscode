@@ -1,11 +1,16 @@
 import * as vscode from "vscode";
+import * as ini from "ini";
 import { ApiFactory } from "./api";
 import { TotpHelper } from "./totp";
 import { AssumeRoleWithSAMLCommand, STSClient } from "@aws-sdk/client-sts";
-import { exec } from "./exec";
+// import { exec } from "./exec";
 import humanizeDuration from "humanize-duration";
 import { AwsRoleSelection, Configuration, ProfileName } from "./config";
 import { isAxiosError } from "axios";
+import { dirname, join } from "path";
+import { mkdirp } from "fs-extra";
+import { fileExists, getHomeDirectory } from "./util";
+import { readFileSync, writeFileSync } from "fs";
 
 export const assumeAwsRole = (
   configuration: Configuration,
@@ -133,14 +138,22 @@ export const assumeAwsRole = (
           configuration.assumeAws.profile.name,
           roleSelection
         );
-        const base = ["aws", "configure"];
-        base.push("--profile", profileName);
-        base.push("set");
 
-        await exec([...base, "region", configuration.assumeAws.region]);
-        await exec([...base, "aws_access_key_id", AccessKeyId]);
-        await exec([...base, "aws_secret_access_key", SecretAccessKey]);
-        await exec([...base, "aws_session_token", SessionToken]);
+        await updateProfile(profileName, {
+          region: configuration.assumeAws.region,
+          accessKeyId: AccessKeyId,
+          secretAccessKey: SecretAccessKey,
+          sessionToken: SessionToken,
+        });
+
+        // const base = ["aws", "configure"];
+        // base.push("--profile", profileName);
+        // base.push("set");
+
+        // await exec([...base, "region", configuration.assumeAws.region]);
+        // await exec([...base, "aws_access_key_id", AccessKeyId]);
+        // await exec([...base, "aws_secret_access_key", SecretAccessKey]);
+        // await exec([...base, "aws_session_token", SessionToken]);
 
         if (!isRefresh) {
           vscode.window.showInformationMessage(
@@ -228,4 +241,92 @@ export const stopRefresh = (apiFactory: ApiFactory): (() => void) => {
       );
     }
   };
+};
+
+const getCredentialsFilename = (): string => {
+  return (
+    process.env.AWS_SHARED_CREDENTIALS_FILE ||
+    join(getHomeDirectory(), ".aws", "credentials")
+  );
+};
+
+const getConfigFilename = (): string => {
+  return (
+    process.env.AWS_CONFIG_FILE || join(getHomeDirectory(), ".aws", "config")
+  );
+};
+
+const getConfigAndCredentials = async (): Promise<{
+  config: { [key: string]: any };
+  configFile: string;
+  credentials: { [key: string]: any };
+  credentialsFile: string;
+}> => {
+  const configFile = getConfigFilename();
+  const credentialsFile = getCredentialsFilename();
+
+  const config = (await fileExists(configFile))
+    ? ini.parse(readFileSync(configFile, "utf-8"))
+    : {};
+
+  const credentials = (await fileExists(credentialsFile))
+    ? ini.parse(readFileSync(credentialsFile, "utf-8"))
+    : {};
+
+  return { config, configFile, credentials, credentialsFile };
+};
+
+const updateProfile = async (
+  profile: string,
+  options: {
+    region: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    sessionToken: string;
+  }
+): Promise<void> => {
+  const filepath = dirname(getCredentialsFilename());
+  if (!(await fileExists(filepath))) {
+    await mkdirp(filepath);
+  }
+
+  const { config, configFile, credentials, credentialsFile } =
+    await getConfigAndCredentials();
+
+  let section: string | undefined = undefined;
+  let profileHeader = `profile ${profile}`;
+
+  // Prevent escaping of "." in profile name
+  if (profile.indexOf(".") !== -1) {
+    const parts = profile.split(".");
+    profile = parts.pop() || "";
+    profileHeader = profile;
+    section = `profile ${parts.join(".")}`;
+  }
+
+  config[profileHeader] = {
+    region: options.region,
+  };
+
+  credentials[profile] = {
+    aws_access_key_id: options.accessKeyId,
+    aws_secret_access_key: options.secretAccessKey,
+    aws_session_token: options.sessionToken,
+  };
+
+  writeFileSync(
+    configFile,
+    ini.stringify(config, {
+      whitespace: true,
+      section,
+    })
+  );
+
+  writeFileSync(
+    credentialsFile,
+    ini.stringify(credentials, {
+      whitespace: true,
+      section: section ? section.replace("profile ", "") : undefined,
+    })
+  );
 };
