@@ -6,7 +6,7 @@ export type Options = {
 };
 
 export type GithubOptions = {
-  token: string | null;
+  token?: string;
 };
 
 export type AssumeAwsOptions = {
@@ -14,7 +14,7 @@ export type AssumeAwsOptions = {
   autoRefresh: boolean;
   rememberRole: RememberRole;
   region: string;
-  role: string | null;
+  role?: string;
   profile: AssumeAwsProfileOptions;
 };
 
@@ -38,11 +38,10 @@ export type AwsRoleSelection = {
 class GitHubConfiguration {
   constructor(private configuration: vscode.WorkspaceConfiguration) {}
 
-  get token(): string | null {
-    return this.configuration.get<string | null>(
-      "token",
-      process.env.GITHUB_TOKEN || null
-    );
+  get token(): string | undefined {
+    const fromConfig = this.configuration.get<string>("token");
+    const fromEnv = process.env.GITHUB_TOKEN;
+    return fromConfig || fromEnv;
   }
 }
 
@@ -50,7 +49,9 @@ class AssumeAwsProfileConfiguration {
   constructor(private configuration: vscode.WorkspaceConfiguration) {}
 
   get name(): ProfileName {
-    return this.configuration.get<ProfileName>("name", "Role ARN");
+    const fromConfig = this.configuration.get<ProfileName>("name");
+    const fromEnv: ProfileName | undefined = process.env.AWS_PROFILE;
+    return fromConfig || fromEnv || "Role ARN";
   }
 }
 
@@ -89,39 +90,41 @@ class AssumeAwsConfiguration {
   }
 
   get region(): string {
-    return this.configuration.get<string>("region", "us-east-1");
+    const fromConfig = this.configuration.get<string>("region");
+    const fromEnv = process.env.AWS_DEFAULT_REGION;
+    return fromConfig || fromEnv || "us-east-1";
   }
 
-  get role(): string | null {
-    return this.configuration.get<string | null>("role", null);
+  get role(): string | undefined {
+    const fromConfig = this.configuration.get<string | null>("role");
+    const fromEnv = process.env.AWS_ROLE_ARN;
+    return fromConfig || fromEnv;
   }
 
   get profile(): AssumeAwsProfileConfiguration {
     return this.#profile;
   }
 
-  get lastRoleSelection(): AwsRoleSelection | null {
+  get lastRoleSelection(): AwsRoleSelection | undefined {
     if (this.rememberRole === "Global") {
-      let roleSelection = this.context.globalState.get<string | null>(
-        "assumeAws.lastRoleSelection",
-        null
+      let roleSelection = this.context.globalState.get<string>(
+        "assumeAws.lastRoleSelection"
       );
-      return roleSelection ? JSON.parse(roleSelection) : null;
+      return roleSelection ? JSON.parse(roleSelection) : undefined;
     }
 
     if (this.rememberRole === "Workspace") {
-      let roleSelection = this.context.workspaceState.get<string | null>(
-        "assumeAws.lastRoleSelection",
-        null
+      let roleSelection = this.context.workspaceState.get<string>(
+        "assumeAws.lastRoleSelection"
       );
-      return roleSelection ? JSON.parse(roleSelection) : null;
+      return roleSelection ? JSON.parse(roleSelection) : undefined;
     }
 
-    return null;
+    return undefined;
   }
 
   set lastRoleSelection(roleSelection: AwsRoleSelection | null) {
-    if (roleSelection === null) {
+    if (!roleSelection) {
       this.context.workspaceState
         .update("assumeAws.lastRoleSelection", null)
         .then(() => {});

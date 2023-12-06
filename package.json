@@ -43,7 +43,7 @@
         "saml-to.github.token": {
           "type": "string",
           "default": null,
-          "markdownDescription": "Provide a GitHub Token instead of using VSCode Authentication. This token requires the `user:email` scope. (Ignores the `GITHUB_TOKEN` environment variable and/or VSCode Authentication if set.)"
+          "markdownDescription": "Provide a GitHub Token instead of using VSCode Authentication. This token requires the `user:email` scope. (Or by the `GITHUB_TOKEN` environment variable.)"
         },
         "saml-to.assumeAws.assumeRoleAtStartup": {
           "type": "boolean",
@@ -58,12 +58,12 @@
         "saml-to.assumeAws.region": {
           "type": "string",
           "default": "us-east-1",
-          "markdownDescription": "The AWS Default Region to set after assuming a role. (Overridden by the `AWS_DEFAULT_REGION` environment variable.)"
+          "markdownDescription": "The AWS Default Region to set after assuming a role. (Or by the `AWS_DEFAULT_REGION` environment variable.)"
         },
         "saml-to.assumeAws.role": {
           "type": "string",
           "default": null,
-          "markdownDescription": "Skip role selection input and assume this role. (Overridden by the `AWS_ROLE_ARN` environment variable.)"
+          "markdownDescription": "Skip role selection input and assume this role. (Or by the `AWS_ROLE_ARN` environment variable.)"
         },
         "saml-to.assumeAws.rememberRole": {
           "type": "string",
@@ -92,7 +92,7 @@
             "Use the Account ID as the profile name.",
             "Do not save the credentials to a profile."
           ],
-          "markdownDescription": "Save AWS Credentials to a named profile in `~/.aws/config`. (Overridden by the `AWS_PROFILE` environment variable.)"
+          "markdownDescription": "Save AWS Credentials to a named profile in `~/.aws/config`. (Or by the `AWS_PROFILE` environment variable.)"
         }
       }
     }

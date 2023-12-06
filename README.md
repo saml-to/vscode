@@ -41,13 +41,13 @@ Add the `--help` flag to any command for available options.
 
 ## Extension Settings
 
-- `github.token`: Provide a GitHub Token instead of using VSCode Authentication. This token requires the `user:email` scope. (Ignores the `GITHUB_TOKEN` environment variable and/or VSCode Authentication if set.)
+- `github.token`: Provide a GitHub Token instead of using VSCode Authentication. This token requires the `user:email` scope. (Or by the `GITHUB_TOKEN` environment variable.)
 - `assumeAws.assumeRoleAtStartup`: Automatically attempt to assume a role at startup. If `assumeAws.role` or `assumeAws.rememberRole` is set, the role prompt will be skipped.
 - `assumeAws.autoRefresh`: Automatically refresh the credentials before they expire.
-- `assumeAws.region`: The AWS Default Region to set after assuming a role. (Overridden by the `AWS_DEFAULT_REGION` environment variable.)
-- `assumeAws.role`: Skip role selection input and assume this role. (Overridden by the `AWS_ROLE_ARN` environment variable.)
+- `assumeAws.region`: The AWS Default Region to set after assuming a role. (Or by the `AWS_DEFAULT_REGION` environment variable.)
+- `assumeAws.role`: Skip role selection input and assume this role. (Or by the `AWS_ROLE_ARN` environment variable.)
 - `assumeAws.rememberRole`: Skip role selection input and assume the last role used. This is ignored when the `assumeAws.role` setting is set.
-- `assumeAws.profile.name`: Save AWS Credentials to a named profile in `~/.aws/config`. (Overridden by the `AWS_PROFILE` environment variable.)
+- `assumeAws.profile.name`: Save AWS Credentials to a named profile in `~/.aws/config`. (Or by the `AWS_PROFILE` environment variable.)
 
 ## Initial Setup
 
