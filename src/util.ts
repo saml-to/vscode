@@ -27,6 +27,24 @@ export const fileExists = async (
   );
 };
 
+export const readFile = async (
+  file: string | vscode.Uri
+): Promise<string | undefined> => {
+  const uri = typeof file === "string" ? vscode.Uri.file(file) : file;
+
+  try {
+    const contents = await vscode.workspace.fs.readFile(uri);
+
+    return Buffer.from(contents).toString();
+  } catch (e) {
+    if (isFileNotFoundError(e)) {
+      return undefined;
+    }
+
+    throw e;
+  }
+};
+
 export const getHomeDirectory = (): string => {
   if (process.env.HOME !== undefined) {
     return process.env.HOME;
@@ -41,4 +59,16 @@ export const getHomeDirectory = (): string => {
   }
 
   return os.homedir();
+};
+
+export const getRootFileSystem = () => {
+  const platform = os.platform();
+
+  if (platform === "win32") {
+    // In Windows, the root is typically a drive letter like 'C:\'
+    return `${process.cwd().split(path.sep)[0]}${path.sep}`;
+  } else {
+    // In Unix-like systems (Linux, macOS), the root is '/'
+    return path.sep;
+  }
 };

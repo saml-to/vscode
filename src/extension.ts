@@ -1,10 +1,14 @@
 import * as vscode from "vscode";
 import { ApiFactory } from "./api";
 import { assumeAwsRole, stopRefresh } from "./aws";
-import { Configuration } from "./config";
+import { Configuration, SamlToConfiguration } from "./config";
 
 export async function activate(context: vscode.ExtensionContext) {
-  const configuration = new Configuration(context);
+  const samlTo = new SamlToConfiguration();
+  await samlTo.initialize();
+
+  const configuration = new Configuration(context, samlTo);
+
   const apiFactory = new ApiFactory(context, configuration, {});
   await apiFactory.initialize();
 
@@ -17,6 +21,8 @@ export async function activate(context: vscode.ExtensionContext) {
         configuration.assumeAws.role
           ? {
               roleArn: configuration.assumeAws.role,
+              org: configuration.github.org,
+              provider: configuration.samlTo.provider,
             }
           : undefined
       )

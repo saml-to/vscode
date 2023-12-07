@@ -1,4 +1,6 @@
 import * as vscode from "vscode";
+import { getRootFileSystem, readFile } from "./util";
+import path from "path";
 
 export type Options = {
   github: GithubOptions;
@@ -44,6 +46,10 @@ class GitHubConfiguration {
     return fromConfig || fromEnv;
   }
 
+  get org(): string | undefined {
+    return this.repository ? this.repository.split("/")[0] : undefined;
+  }
+
   get repository(): string | undefined {
     // TODO: alternate read from /workspaces/.codespaces/shared/.env
     const fromEnv = process.env.GITHUB_REPOSITORY;
@@ -68,7 +74,8 @@ class AssumeAwsConfiguration {
 
   constructor(
     private context: vscode.ExtensionContext,
-    private configuration: vscode.WorkspaceConfiguration
+    private configuration: vscode.WorkspaceConfiguration,
+    private samToConfiguration: SamlToConfiguration
   ) {
     this.#profile = new AssumeAwsProfileConfiguration(
       vscode.workspace.getConfiguration("saml-to.assumeAws.profile")
@@ -98,13 +105,15 @@ class AssumeAwsConfiguration {
   get region(): string {
     const fromConfig = this.configuration.get<string>("region");
     const fromEnv = process.env.AWS_DEFAULT_REGION;
-    return fromConfig || fromEnv || "us-east-1";
+    const fromFs = this.samToConfiguration.awsRegion;
+    return fromConfig || fromEnv || fromFs || "us-east-1";
   }
 
   get role(): string | undefined {
     const fromConfig = this.configuration.get<string | null>("role");
     const fromEnv = process.env.AWS_ROLE_ARN;
-    return fromConfig || fromEnv;
+    const fromFs = this.samToConfiguration.awsRole;
+    return fromConfig || fromEnv || fromFs;
   }
 
   get profile(): AssumeAwsProfileConfiguration {
@@ -158,18 +167,73 @@ class AssumeAwsConfiguration {
   }
 }
 
+export class SamlToConfiguration {
+  #provider: string | undefined;
+  #awsRole: string | undefined;
+  #awsRegion: string | undefined;
+  #awsProfile: string | undefined;
+
+  constructor() {}
+
+  public async initialize(): Promise<void> {
+    let root = getRootFileSystem();
+
+    // TODO: Support Windows (e.g. %APPDATA%\saml-to\provider)
+    // This is currently only used in Codespaces
+    // Since Codespaces is linux-only, this is fine for now
+
+    this.#provider = await readFile(
+      path.join(root, "etc", "saml-to", "provider")
+    );
+    this.#awsRole = await readFile(
+      path.join(root, "etc", "saml-to", "aws", "role")
+    );
+    this.#awsRegion = await readFile(
+      path.join(root, "etc", "saml-to", "aws", "region")
+    );
+    this.#awsProfile = await readFile(
+      path.join(root, "etc", "saml-to", "aws", "profile")
+    );
+  }
+
+  get provider(): string | undefined {
+    return this.#provider;
+  }
+
+  get awsRole(): string | undefined {
+    return this.#awsRole;
+  }
+
+  get awsRegion(): string | undefined {
+    return this.#awsRegion;
+  }
+
+  get awsProfile(): string | undefined {
+    return this.#awsProfile;
+  }
+}
+
 export class Configuration {
   #github: GitHubConfiguration;
   #assumeAws: AssumeAwsConfiguration;
+  #samlTo: SamlToConfiguration;
 
-  constructor(private context: vscode.ExtensionContext) {
+  constructor(
+    private context: vscode.ExtensionContext,
+    samlTo: SamlToConfiguration
+  ) {
+    this.#samlTo = samlTo;
+
     this.context.globalState.setKeysForSync(["assumeAws.lastRoleSelection"]);
+
     this.#github = new GitHubConfiguration(
       vscode.workspace.getConfiguration("saml-to.github")
     );
+
     this.#assumeAws = new AssumeAwsConfiguration(
       context,
-      vscode.workspace.getConfiguration("saml-to.assumeAws")
+      vscode.workspace.getConfiguration("saml-to.assumeAws"),
+      samlTo
     );
 
     vscode.workspace.onDidChangeConfiguration((e) => {
@@ -181,10 +245,15 @@ export class Configuration {
       if (e.affectsConfiguration("saml-to.assumeAws")) {
         this.#assumeAws = new AssumeAwsConfiguration(
           context,
-          vscode.workspace.getConfiguration("saml-to.assumeAws")
+          vscode.workspace.getConfiguration("saml-to.assumeAws"),
+          samlTo
         );
       }
     });
+  }
+
+  get samlTo(): SamlToConfiguration {
+    return this.#samlTo;
   }
 
   get github(): GitHubConfiguration {
