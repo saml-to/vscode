@@ -43,6 +43,12 @@ class GitHubConfiguration {
     const fromEnv = process.env.GITHUB_TOKEN;
     return fromConfig || fromEnv;
   }
+
+  get repository(): string | undefined {
+    // TODO: alternate read from /workspaces/.codespaces/shared/.env
+    const fromEnv = process.env.GITHUB_REPOSITORY;
+    return fromEnv;
+  }
 }
 
 class AssumeAwsProfileConfiguration {

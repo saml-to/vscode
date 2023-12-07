@@ -8,7 +8,7 @@ import packageJson from "../package.json";
 import os from "os";
 import { Configuration } from "./config";
 
-type Headers = { "user-agent": string; "x-2fa-code"?: string };
+type Headers = { "user-agent": string; "x-2fa-code"?: string; origin?: string };
 
 const USER_AGENT = `${packageJson.name}/${
   packageJson.version
@@ -113,6 +113,12 @@ export class ApiFactory {
       headers["x-2fa-code"] = `${twoFactorCode}`;
     }
 
+    // Origin header for Codespaces Identity
+    const repository = this.configuration.github.repository;
+    if (repository) {
+      headers["origin"] = repository;
+    }
+
     const configuration = new IDPConfiguration({
       accessToken: accessToken || (await this.getAccessToken(twoFactorCode)),
       baseOptions: {
@@ -135,6 +141,11 @@ export class ApiFactory {
     const headers: Headers = { "user-agent": USER_AGENT };
     if (twoFactorCode) {
       headers["x-2fa-code"] = `${twoFactorCode}`;
+    }
+
+    const repository = this.configuration.github.repository;
+    if (repository) {
+      headers["origin"] = repository;
     }
 
     const configuration = new IDPConfiguration({
