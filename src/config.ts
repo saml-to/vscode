@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { getRootFileSystem, readFile } from "./util";
+import { getHomeDirectory, getRootFileSystem, readFile } from "./util";
 import path from "path";
 
 export type Options = {
@@ -38,12 +38,16 @@ export type AwsRoleSelection = {
 };
 
 class GitHubConfiguration {
-  constructor(private configuration: vscode.WorkspaceConfiguration) {}
+  constructor(
+    private configuration: vscode.WorkspaceConfiguration,
+    private samlTo: SamlToConfiguration
+  ) {}
 
   get token(): string | undefined {
-    const fromConfig = this.configuration.get<string>("token");
+    const fromFs = this.samlTo.githubToken;
     const fromEnv = process.env.GITHUB_TOKEN;
-    return fromConfig || fromEnv;
+    const fromConfig = this.configuration.get<string>("token");
+    return fromFs || fromEnv || fromConfig;
   }
 
   get org(): string | undefined {
@@ -64,10 +68,10 @@ class AssumeAwsProfileConfiguration {
   ) {}
 
   get name(): ProfileName {
-    const fromConfig = this.configuration.get<ProfileName>("name");
-    const fromEnv: ProfileName | undefined = process.env.AWS_PROFILE;
     const fromFs = this.samlTo.awsProfile;
-    return fromConfig || fromEnv || fromFs || "Role ARN";
+    const fromEnv: ProfileName | undefined = process.env.AWS_PROFILE;
+    const fromConfig = this.configuration.get<ProfileName>("name");
+    return fromFs || fromEnv || fromConfig || "Role ARN";
   }
 }
 
@@ -109,17 +113,17 @@ class AssumeAwsConfiguration {
   }
 
   get region(): string {
-    const fromConfig = this.configuration.get<string>("region");
-    const fromEnv = process.env.AWS_DEFAULT_REGION;
     const fromFs = this.samlTo.awsRegion;
-    return fromConfig || fromEnv || fromFs || "us-east-1";
+    const fromEnv = process.env.AWS_DEFAULT_REGION;
+    const fromConfig = this.configuration.get<string>("region");
+    return fromFs || fromConfig || fromEnv || "us-east-1";
   }
 
   get role(): string | undefined {
-    const fromConfig = this.configuration.get<string | null>("role");
-    const fromEnv = process.env.AWS_ROLE_ARN;
     const fromFs = this.samlTo.awsRole;
-    return fromConfig || fromEnv || fromFs;
+    const fromEnv = process.env.AWS_ROLE_ARN;
+    const fromConfig = this.configuration.get<string | undefined>("role");
+    return fromFs || fromEnv || fromConfig || undefined;
   }
 
   get profile(): AssumeAwsProfileConfiguration {
@@ -175,6 +179,7 @@ class AssumeAwsConfiguration {
 
 export class SamlToConfiguration {
   #provider: string | undefined;
+  #githubToken: string | undefined;
   #awsRole: string | undefined;
   #awsRegion: string | undefined;
   #awsProfile: string | undefined;
@@ -183,6 +188,18 @@ export class SamlToConfiguration {
 
   public async initialize(): Promise<void> {
     let root = getRootFileSystem();
+    let home = getHomeDirectory();
+
+    const githubTokenJson = await readFile(
+      path.join(home, ".saml-to", "github-token.json")
+    );
+
+    if (githubTokenJson) {
+      const githubToken = JSON.parse(githubTokenJson);
+      if (githubToken.token) {
+        this.#githubToken = githubToken.token;
+      }
+    }
 
     // TODO: Support Windows (e.g. %APPDATA%\saml-to\provider)
     // This is currently only used in Codespaces
@@ -200,6 +217,10 @@ export class SamlToConfiguration {
     this.#awsProfile = await readFile(
       path.join(root, "etc", "saml-to", "aws", "profile")
     );
+  }
+
+  get githubToken(): string | undefined {
+    return this.#githubToken;
   }
 
   get provider(): string | undefined {
@@ -233,7 +254,8 @@ export class Configuration {
     this.context.globalState.setKeysForSync(["assumeAws.lastRoleSelection"]);
 
     this.#github = new GitHubConfiguration(
-      vscode.workspace.getConfiguration("saml-to.github")
+      vscode.workspace.getConfiguration("saml-to.github"),
+      samlTo
     );
 
     this.#assumeAws = new AssumeAwsConfiguration(
@@ -245,7 +267,8 @@ export class Configuration {
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("saml-to.github")) {
         this.#github = new GitHubConfiguration(
-          vscode.workspace.getConfiguration("saml-to.github")
+          vscode.workspace.getConfiguration("saml-to.github"),
+          samlTo
         );
       }
       if (e.affectsConfiguration("saml-to.assumeAws")) {
