@@ -24,7 +24,6 @@ This is the VSCode Extension for [SAML.to](https://saml.to). It allows for AWS r
 Please make sure the following is installed:
 
 - VSCode 1.84+
-- `aws` avaliable on the `$PATH`
 
 Then, install the VSCode Extension from the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=saml-to.saml-to-vscode).
 

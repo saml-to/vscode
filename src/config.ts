@@ -58,12 +58,16 @@ class GitHubConfiguration {
 }
 
 class AssumeAwsProfileConfiguration {
-  constructor(private configuration: vscode.WorkspaceConfiguration) {}
+  constructor(
+    private configuration: vscode.WorkspaceConfiguration,
+    private samlTo: SamlToConfiguration
+  ) {}
 
   get name(): ProfileName {
     const fromConfig = this.configuration.get<ProfileName>("name");
     const fromEnv: ProfileName | undefined = process.env.AWS_PROFILE;
-    return fromConfig || fromEnv || "Role ARN";
+    const fromFs = this.samlTo.awsProfile;
+    return fromConfig || fromEnv || fromFs || "Role ARN";
   }
 }
 
@@ -75,16 +79,18 @@ class AssumeAwsConfiguration {
   constructor(
     private context: vscode.ExtensionContext,
     private configuration: vscode.WorkspaceConfiguration,
-    private samToConfiguration: SamlToConfiguration
+    private samlTo: SamlToConfiguration
   ) {
     this.#profile = new AssumeAwsProfileConfiguration(
-      vscode.workspace.getConfiguration("saml-to.assumeAws.profile")
+      vscode.workspace.getConfiguration("saml-to.assumeAws.profile"),
+      samlTo
     );
 
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("saml-to.assumeAws.profile")) {
         this.#profile = new AssumeAwsProfileConfiguration(
-          vscode.workspace.getConfiguration("saml-to.assumeAws.profile")
+          vscode.workspace.getConfiguration("saml-to.assumeAws.profile"),
+          samlTo
         );
       }
     });
@@ -105,14 +111,14 @@ class AssumeAwsConfiguration {
   get region(): string {
     const fromConfig = this.configuration.get<string>("region");
     const fromEnv = process.env.AWS_DEFAULT_REGION;
-    const fromFs = this.samToConfiguration.awsRegion;
+    const fromFs = this.samlTo.awsRegion;
     return fromConfig || fromEnv || fromFs || "us-east-1";
   }
 
   get role(): string | undefined {
     const fromConfig = this.configuration.get<string | null>("role");
     const fromEnv = process.env.AWS_ROLE_ARN;
-    const fromFs = this.samToConfiguration.awsRole;
+    const fromFs = this.samlTo.awsRole;
     return fromConfig || fromEnv || fromFs;
   }
 
