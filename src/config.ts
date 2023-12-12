@@ -51,7 +51,10 @@ class GitHubConfiguration {
   }
 
   get org(): string | undefined {
-    return this.repository ? this.repository.split("/")[0] : undefined;
+    const fromFs = this.samlTo.org;
+    const fromEnv = this.repository ? this.repository.split("/")[0] : undefined;
+    // TODO: make this a config option?
+    return fromFs || fromEnv;
   }
 
   get repository(): string | undefined {
@@ -178,6 +181,7 @@ class AssumeAwsConfiguration {
 }
 
 export class SamlToConfiguration {
+  #org: string | undefined;
   #provider: string | undefined;
   #githubToken: string | undefined;
   #awsRole: string | undefined;
@@ -208,6 +212,7 @@ export class SamlToConfiguration {
     this.#provider = await readFile(
       path.join(root, "etc", "saml-to", "provider")
     );
+    this.#org = await readFile(path.join(root, "etc", "saml-to", "org"));
     this.#awsRole = await readFile(
       path.join(root, "etc", "saml-to", "aws", "role")
     );
@@ -219,12 +224,16 @@ export class SamlToConfiguration {
     );
   }
 
-  get githubToken(): string | undefined {
-    return this.#githubToken;
+  get org(): string | undefined {
+    return this.#org;
   }
 
   get provider(): string | undefined {
     return this.#provider;
+  }
+
+  get githubToken(): string | undefined {
+    return this.#githubToken;
   }
 
   get awsRole(): string | undefined {
