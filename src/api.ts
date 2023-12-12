@@ -89,7 +89,9 @@ export class ApiFactory {
         const { data: identity } = await idpApi.getIdentity();
 
         vscode.window.showInformationMessage(
-          `[SAML.to] Logged into GitHub as ${identity.name} (${identity.id})`
+          `[SAML.to] Logged into GitHub as ${
+            identity.login ?? identity.name
+          } (${identity.id})`
         );
 
         this.accessToken = accessToken;

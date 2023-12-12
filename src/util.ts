@@ -35,7 +35,7 @@ export const readFile = async (
   try {
     const contents = await vscode.workspace.fs.readFile(uri);
 
-    return Buffer.from(contents).toString();
+    return Buffer.from(contents).toString().trim();
   } catch (e) {
     if (isFileNotFoundError(e)) {
       return undefined;
