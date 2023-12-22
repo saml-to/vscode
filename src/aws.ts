@@ -106,6 +106,7 @@ export const assumeAwsRole = (
       }
 
       const client = new STSClient({
+        endpoint: `https://sts.amazonaws.com`,
         region: configuration.assumeAws.region,
       });
       const { Credentials } = await client.send(
