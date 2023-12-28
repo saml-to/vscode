@@ -105,6 +105,12 @@ export const assumeAwsRole = (
         throw new Error("Missing SAML Response");
       }
 
+      if (!isRefresh) {
+        vscode.window.showInformationMessage(
+          `[SAML.to] Assumed AWS Role "${roleSelection.roleArn}"`
+        );
+      }
+
       const client = new STSClient({
         endpoint: `https://sts.amazonaws.com`,
         region: configuration.assumeAws.region,
